@@ -16,7 +16,6 @@ public class JobsQueue implements MyQueue {
 
     @Override
     public void addJob(ScanningJob job) throws InterruptedException {
-        System.out.println("adding job");
         jobs.put(job);
     }
 

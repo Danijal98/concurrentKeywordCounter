@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 
 public class ConfigurationReader {
 
+    private static ConfigurationReader instance;
+
     private String[] keywords;
     private String prefix;
     private long crawlerSleepTime;
@@ -16,13 +18,14 @@ public class ConfigurationReader {
     private int hopCount;
     private long urlRefreshTime;
 
-    private final File configFile;
-
-    public ConfigurationReader(File configFile) {
-        this.configFile = configFile;
+    public static ConfigurationReader getInstance() {
+        if(instance == null) {
+            instance = new ConfigurationReader();
+        }
+        return instance;
     }
 
-    public void readConfiguration() throws FileNotFoundException, FileCorrupted {
+    public void readConfiguration(File configFile) throws FileNotFoundException, FileCorrupted {
         Scanner sc = new Scanner(configFile);
         while(sc.hasNextLine()){
             String line = sc.nextLine();

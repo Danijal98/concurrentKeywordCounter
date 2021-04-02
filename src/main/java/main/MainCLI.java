@@ -5,8 +5,11 @@ import exceptions.FileCorrupted;
 import jobDispatcher.JobDispatcher;
 import jobsQueue.JobsQueue;
 import jobsQueue.MyQueue;
+import tasks.FileTask;
+import tasks.Task;
+import utils.WordCounter;
 
-import java.util.Scanner;
+import java.util.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,9 +23,9 @@ public class MainCLI {
     public static void main(String[] args) {
         // Parse properties file
         File file = new File("app.properties");
-        ConfigurationReader reader = new ConfigurationReader(file);
+        ConfigurationReader reader = ConfigurationReader.getInstance();
         try {
-            reader.readConfiguration();
+            reader.readConfiguration(file);
         } catch (FileNotFoundException | FileCorrupted e) {
             e.printStackTrace();
             System.exit(0);

@@ -1,11 +1,18 @@
 package jobDispatcher;
 
 import enums.ScanType;
+import jobs.FileJob;
 import jobs.ScanningJob;
 import jobsQueue.MyQueue;
 import retriever.Retriever;
+import tasks.FileTask;
+import tasks.Task;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
 
 public class JobDispatcher implements Dispatcher {
 
@@ -30,11 +37,14 @@ public class JobDispatcher implements Dispatcher {
                 job = jobsQueue.getJobs().take();
                 System.out.println();
                 if (job.getType().equals(ScanType.FILE)) {
-                    System.out.println("File");
+                    Task fileTask = new FileTask(((FileJob) job).getDir().listFiles());
+                    Future<Map<String, Integer>> resultFuture =  filePool.submit(fileTask);
+                    Map<String, Integer> result = resultFuture.get();
+                    System.out.println(result);
                 } else if (job.getType().equals(ScanType.WEB)) {
                     System.out.println("Web");
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
