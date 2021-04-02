@@ -2,6 +2,10 @@ package main;
 
 import crawler.DirectoryCrawler;
 import exceptions.FileCorrupted;
+import jobDispatcher.JobDispatcher;
+import jobsQueue.JobsQueue;
+import jobsQueue.MyQueue;
+
 import java.util.Scanner;
 
 import java.io.File;
@@ -10,21 +14,32 @@ import java.io.FileNotFoundException;
 public class MainCLI {
 
     private static DirectoryCrawler directoryCrawler;
+    private static MyQueue jobsQueue;
+    private static JobDispatcher jobDispatcher;
 
     public static void main(String[] args) {
+        // Parse properties file
         File file = new File("app.properties");
         ConfigurationReader reader = new ConfigurationReader(file);
         try {
             reader.readConfiguration();
         } catch (FileNotFoundException | FileCorrupted e) {
             e.printStackTrace();
-            System.exit(1);
+            System.exit(0);
         }
 
-        directoryCrawler = new DirectoryCrawler(reader.getCrawlerSleepTime(), reader.getPrefix());
-        Thread threadCrawler = new Thread(directoryCrawler);
-        threadCrawler.start();
+        // Init components
+        jobsQueue = new JobsQueue();
+        directoryCrawler = new DirectoryCrawler(reader.getCrawlerSleepTime(), reader.getPrefix(), jobsQueue);
+        jobDispatcher = new JobDispatcher(jobsQueue);
 
+        // Starting threads
+        Thread threadCrawler = new Thread(directoryCrawler);
+        Thread threadDispatcher = new Thread(jobDispatcher);
+        threadCrawler.start();
+        threadDispatcher.start();
+
+        // Handle user commands
         parseUserInput();
     }
 
@@ -35,7 +50,6 @@ public class MainCLI {
             String line = scanner.nextLine();
             String[] split = line.split(" ");
             String function = split[0].trim();
-            String attribute;
             switch (function) {
                 case "ad":
                     if(split.length < 2) {
@@ -48,6 +62,11 @@ public class MainCLI {
                         System.out.println("Provided file path is not valid");
                         e.printStackTrace();
                     }
+                    break;
+                case "stop":
+                    // todo stop all threads
+                    System.out.println("Closing app...");
+                    System.exit(0);
                     break;
             }
 

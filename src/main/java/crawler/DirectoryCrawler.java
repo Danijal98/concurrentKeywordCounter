@@ -1,5 +1,10 @@
 package crawler;
 
+import enums.ScanType;
+import jobs.FileJob;
+import jobs.ScanningJob;
+import jobsQueue.MyQueue;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Map;
@@ -9,19 +14,20 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class DirectoryCrawler implements Crawler, Runnable {
 
-    private Map<File, Long> filesMap = new ConcurrentHashMap<>();
-    private Queue<File> dirs = new ConcurrentLinkedDeque<>();
-    private long sleepTime;
-    private String corpusPrefix;
+    private final Map<File, Long> filesMap = new ConcurrentHashMap<>();
+    private final Queue<File> dirs = new ConcurrentLinkedDeque<>();
+    private final long sleepTime;
+    private final String corpusPrefix;
+    private final MyQueue jobsQueue;
 
-    public DirectoryCrawler(long sleepTime, String corpusPrefix) {
+    public DirectoryCrawler(long sleepTime, String corpusPrefix, MyQueue jobsQueue) {
         this.sleepTime = sleepTime;
         this.corpusPrefix = corpusPrefix;
+        this.jobsQueue = jobsQueue;
     }
 
     @Override
     public void run() {
-        // loop through queue
         while(true) {
             for (File dir : dirs) {
                 parseDirectory(dir);
@@ -50,16 +56,13 @@ public class DirectoryCrawler implements Crawler, Runnable {
                     if(oldLastModified != null) {
                         Long newLastModified = f.lastModified();
                         if(!oldLastModified.equals(newLastModified)) {
-                            //System.out.println(f.getParentFile().getName());
-                            filesMap.put(f, f.lastModified());
-                            makeJobAndSendToQueue(f);
+                            filesMap.put(f, newLastModified);
+                            makeJobAndSendToQueue(f.getParentFile());
                         }
                     }else {
-                        //System.out.println(f.getAbsolutePath());
                         filesMap.put(f, f.lastModified());
-                        makeJobAndSendToQueue(f);
+                        makeJobAndSendToQueue(f.getParentFile());
                     }
-                }else {
                     return;
                 }
             }
@@ -68,7 +71,13 @@ public class DirectoryCrawler implements Crawler, Runnable {
 
     @Override
     public void makeJobAndSendToQueue(File dir) {
-        // make job from dir
+        ScanningJob fileJob = new FileJob(ScanType.FILE, dir);
+        try {
+            jobsQueue.addJob(fileJob);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.out.println("Failed to put job to queue");
+        }
     }
 
     @Override
