@@ -1,14 +1,20 @@
 package main;
 
 import crawler.DirectoryCrawler;
+import enums.ScanType;
 import exceptions.FileCorrupted;
 import jobDispatcher.JobDispatcher;
+import jobs.PoisonJob;
+import jobs.ScanningJob;
+import jobs.WebJob;
 import jobsQueue.JobsQueue;
 import jobsQueue.MyQueue;
 import tasks.FileTask;
 import tasks.Task;
 import utils.WordCounter;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 import java.io.File;
@@ -19,11 +25,14 @@ public class MainCLI {
     private static DirectoryCrawler directoryCrawler;
     private static MyQueue jobsQueue;
     private static JobDispatcher jobDispatcher;
+    private static ConfigurationReader reader;
+
+    private static boolean run = true;
 
     public static void main(String[] args) {
         // Parse properties file
         File file = new File("app.properties");
-        ConfigurationReader reader = ConfigurationReader.getInstance();
+        reader = ConfigurationReader.getInstance();
         try {
             reader.readConfiguration(file);
         } catch (FileNotFoundException | FileCorrupted e) {
@@ -48,7 +57,7 @@ public class MainCLI {
 
     private static void parseUserInput() {
         Scanner scanner = new Scanner(System.in);
-        while(true) {
+        while(run) {
             System.out.print("Enter command: ");
             String line = scanner.nextLine();
             String[] split = line.split(" ");
@@ -66,14 +75,41 @@ public class MainCLI {
                         e.printStackTrace();
                     }
                     break;
+                case "aw":
+                    if(split.length < 2) {
+                        System.out.println("This function requires attribute");
+                        break;
+                    }
+                    try {
+                        ScanningJob webJob = new WebJob(ScanType.WEB, new URL(split[1]), reader.getHopCount());
+                        jobsQueue.addJob(webJob);
+                    } catch (MalformedURLException e) {
+                        System.out.println("Passed url is not valid");
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        System.out.println("Failed to put job to queue");
+                        e.printStackTrace();
+                    }
+                    break;
                 case "stop":
-                    // todo stop all threads
-                    System.out.println("Closing app...");
-                    System.exit(0);
+                    shutdownThreads();
                     break;
             }
 
         }
+        System.out.println("Closing app...");
+    }
+
+    private static void shutdownThreads() {
+        try {
+            jobsQueue.addJob(new PoisonJob(ScanType.POISON));
+            directoryCrawler.shutdown();
+            run = false;
+        } catch (InterruptedException e) {
+            System.out.println("Failed to put job to queue");
+            e.printStackTrace();
+        }
+
     }
 
 }

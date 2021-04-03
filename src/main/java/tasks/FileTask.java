@@ -6,8 +6,9 @@ import utils.WordCounter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.concurrent.RecursiveTask;
 
-public class FileTask extends Task {
+public class FileTask extends RecursiveTask<Map<String, Integer>> {
 
     private final File[] fileList;
 
@@ -31,7 +32,7 @@ public class FileTask extends Task {
         compute = Arrays.copyOfRange(fileList, 0, i);
         delegate = Arrays.copyOfRange(fileList, i, fileList.length);
 
-        Task delegateTask = new FileTask(delegate);
+        FileTask delegateTask = new FileTask(delegate);
         delegateTask.fork();
         Map<String, Integer> thisWords = wordsInCorpus(compute);
         Map<String, Integer> delegatedWords = delegateTask.join();

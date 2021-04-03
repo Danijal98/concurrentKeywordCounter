@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 public class ResultRetriever implements Retriever {
+
+
     @Override
     public Map<String, Integer> getResult(String query) {
         return null;

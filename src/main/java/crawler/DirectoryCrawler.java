@@ -20,6 +20,8 @@ public class DirectoryCrawler implements Crawler, Runnable {
     private final String corpusPrefix;
     private final MyQueue jobsQueue;
 
+    private boolean run = true;
+
     public DirectoryCrawler(long sleepTime, String corpusPrefix, MyQueue jobsQueue) {
         this.sleepTime = sleepTime;
         this.corpusPrefix = corpusPrefix;
@@ -28,7 +30,7 @@ public class DirectoryCrawler implements Crawler, Runnable {
 
     @Override
     public void run() {
-        while(true) {
+        while(run) {
             for (File dir : dirs) {
                 parseDirectory(dir);
             }
@@ -38,6 +40,11 @@ public class DirectoryCrawler implements Crawler, Runnable {
                 e.printStackTrace();
             }
         }
+        System.out.println("Stopping crawler...");
+    }
+
+    public void shutdown() {
+        run = false;
     }
 
     @Override
