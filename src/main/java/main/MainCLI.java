@@ -9,9 +9,7 @@ import jobs.ScanningJob;
 import jobs.WebJob;
 import jobsQueue.JobsQueue;
 import jobsQueue.MyQueue;
-import tasks.FileTask;
-import tasks.Task;
-import utils.WordCounter;
+import retriever.ResultRetriever;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,8 +24,9 @@ public class MainCLI {
     private static MyQueue jobsQueue;
     private static JobDispatcher jobDispatcher;
     private static ConfigurationReader reader;
+    private static ResultRetriever resultRetriever;
 
-    private static boolean run = true;
+    private static volatile boolean run = true;
 
     public static void main(String[] args) {
         // Parse properties file
@@ -42,8 +41,9 @@ public class MainCLI {
 
         // Init components
         jobsQueue = new JobsQueue();
+        resultRetriever = new ResultRetriever();
         directoryCrawler = new DirectoryCrawler(reader.getCrawlerSleepTime(), reader.getPrefix(), jobsQueue);
-        jobDispatcher = new JobDispatcher(jobsQueue);
+        jobDispatcher = new JobDispatcher(jobsQueue, resultRetriever);
 
         // Starting threads
         Thread threadCrawler = new Thread(directoryCrawler);

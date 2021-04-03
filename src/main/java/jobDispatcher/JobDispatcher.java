@@ -22,13 +22,14 @@ public class JobDispatcher implements Dispatcher {
     private final MyQueue jobsQueue;
     //todo make pool of this
     private Retriever retriever;
-    private boolean run = true;
+    private volatile boolean run = true;
 
-    public JobDispatcher(MyQueue jobsQueue) {
+    public JobDispatcher(MyQueue jobsQueue, Retriever retriever) {
         this.jobsQueue = jobsQueue;
         filePool = new ForkJoinPool();
         service = Executors.newCachedThreadPool();
         webPool = new ExecutorCompletionService<>(service);
+        this.retriever = retriever;
     }
 
     @Override
