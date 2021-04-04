@@ -16,9 +16,9 @@ import java.util.concurrent.Callable;
 
 public class WebTask implements Callable<Map<String, Integer>> {
 
-    private int hops;
-    private URL url;
-    private MyQueue queue;
+    private final int hops;
+    private final URL url;
+    private final MyQueue queue;
 
     public WebTask(int hops, URL url, MyQueue queue) {
         this.hops = hops;

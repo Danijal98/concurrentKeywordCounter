@@ -39,17 +39,16 @@ public class JobDispatcher implements Dispatcher {
             try {
                 job = jobsQueue.getJobs().take();
                 if (job.getType().equals(ScanType.FILE)) {
-                    FileTask fileTask = new FileTask(((FileJob) job).getDir().listFiles());
-                    // todo send this future to result retriever
-                    Future<Map<String, Integer>> fileFuture =  filePool.submit(fileTask);
-                    //TODO
+                    FileJob fj = (FileJob) job;
+                    FileTask fileTask = new FileTask(fj.getDir().listFiles());
+                    Future<Map<String, Integer>> fileFuture = filePool.submit(fileTask);
+                    retriever.addCorpusResult(fj.getDir(), fileFuture);
                 } else if (job.getType().equals(ScanType.WEB)) {
                     WebJob wj = (WebJob) job;
                     WebTask webTask = new WebTask(wj.getHops(), wj.getUrl(), jobsQueue);
                     webPool.submit(webTask);
-                    // todo send this future to result retriever
                     Future<Map<String, Integer>> webFuture = webPool.take();
-                    //TODO
+                    retriever.addWebResult(wj.getUrl(), webFuture);
                 } else if(job.getType().equals(ScanType.POISON)) {
                     run = false;
                     shutdown();

@@ -10,6 +10,7 @@ import jobs.WebJob;
 import jobsQueue.JobsQueue;
 import jobsQueue.MyQueue;
 import retriever.ResultRetriever;
+import utils.ConfigurationReader;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -63,8 +64,8 @@ public class MainCLI {
             String[] split = line.split(" ");
             String function = split[0].trim();
             switch (function) {
-                case "ad":
-                    if(split.length < 2) {
+                case "ad" -> {
+                    if (split.length < 2) {
                         System.out.println("This function requires attribute");
                         break;
                     }
@@ -72,11 +73,10 @@ public class MainCLI {
                         directoryCrawler.addDir(new File(split[1]));
                     } catch (FileNotFoundException e) {
                         System.out.println("Provided file path is not valid");
-                        e.printStackTrace();
                     }
-                    break;
-                case "aw":
-                    if(split.length < 2) {
+                }
+                case "aw" -> {
+                    if (split.length < 2) {
                         System.out.println("This function requires attribute");
                         break;
                     }
@@ -85,17 +85,76 @@ public class MainCLI {
                         jobsQueue.addJob(webJob);
                     } catch (MalformedURLException e) {
                         System.out.println("Passed url is not valid");
-                        e.printStackTrace();
                     } catch (InterruptedException e) {
                         System.out.println("Failed to put job to queue");
-                        e.printStackTrace();
                     }
-                    break;
-                case "stop":
-                    shutdownThreads();
-                    break;
+                }
+                case "get" -> {
+                    if (split.length < 2) {
+                        System.out.println("This function requires attribute");
+                        break;
+                    }
+                    String[] parts = split[1].split("\\|");
+                    if (parts.length < 2) {
+                        System.out.println("Incorrect attribute format for get");
+                        break;
+                    }
+                    if (parts[1].equals("summary")) {
+                        switch (parts[0]) {
+                            case "file" -> System.out.println(resultRetriever.querySummary(ScanType.FILE));
+                            case "web" -> System.out.println(resultRetriever.querySummary(ScanType.WEB));
+                            default -> System.out.println("Wrong first part of argument");
+                        }
+                    }else {
+                        switch (parts[0]) {
+                            case "file" -> System.out.println(resultRetriever.getFileResult(parts[1]));
+                            case "web" -> System.out.println(resultRetriever.getWebResult(parts[1]));
+                            default -> System.out.println("Wrong first part of argument");
+                        }
+                    }
+                }
+                case "query" -> {
+                    if (split.length < 2) {
+                        System.out.println("This function requires attribute");
+                        break;
+                    }
+                    String[] parts = split[1].split("\\|");
+                    if (parts.length < 2) {
+                        System.out.println("Incorrect attribute format for query");
+                        break;
+                    }
+                    if (parts[1].equals("summary")) {
+                        switch (parts[0]) {
+                            case "file" -> {
+                                Map<String, Map<String, Integer>> res = resultRetriever.getSummary(ScanType.FILE);
+                                if (res == null) {
+                                    System.out.println("Result is not ready yet...");
+                                }else {
+                                    System.out.println(res);
+                                }
+                            }
+                            case "web" -> System.out.println(resultRetriever.getSummary(ScanType.WEB));
+                            default -> System.out.println("Wrong first part of argument");
+                        }
+                    }else {
+                        switch (parts[0]) {
+                            case "file" -> {
+                                Map<String, Integer> res = resultRetriever.queryFileResult(parts[1]);
+                                if (res == null) {
+                                    System.out.println("Result is not ready yet...");
+                                }else {
+                                    System.out.println(res);
+                                }
+                            }
+                            case "web" -> System.out.println(resultRetriever.queryWebResult(parts[1]));
+                            default -> System.out.println("Wrong first part of argument");
+                        }
+                    }
+                }
+                case "cws" -> resultRetriever.clearSummary(ScanType.WEB);
+                case "cfs" -> resultRetriever.clearSummary(ScanType.FILE);
+                case "stop" -> shutdownThreads();
             }
-
         }
         System.out.println("Closing app...");
     }

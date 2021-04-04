@@ -34,11 +34,11 @@ public class DirectoryCrawler implements Crawler, Runnable {
             for (File dir : dirs) {
                 parseDirectory(dir);
             }
+            if(!filesMap.isEmpty())
             try {
                 synchronized (this) {
                     wait(sleepTime);
                 }
-//                Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -67,16 +67,25 @@ public class DirectoryCrawler implements Crawler, Runnable {
                     if(oldLastModified != null) {
                         Long newLastModified = f.lastModified();
                         if(!oldLastModified.equals(newLastModified)) {
-                            filesMap.put(f, newLastModified);
+//                            filesMap.put(f, newLastModified);
+                            addSubDirsToFileMap(f.getParentFile());
                             makeJobAndSendToQueue(f.getParentFile());
                         }
                     }else {
-                        filesMap.put(f, f.lastModified());
+//                        filesMap.put(f, f.lastModified());
+                        addSubDirsToFileMap(f.getParentFile());
                         makeJobAndSendToQueue(f.getParentFile());
                     }
-                    return;
                 }
             }
+        }
+    }
+
+    @Override
+    public void addSubDirsToFileMap(File parentDir) {
+        File[] list = parentDir.listFiles();
+        for (File f: list != null ? list : new File[0]) {
+            filesMap.put(f, f.lastModified());
         }
     }
 

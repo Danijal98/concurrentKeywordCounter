@@ -1,6 +1,6 @@
 package tasks;
 
-import main.ConfigurationReader;
+import utils.ConfigurationReader;
 import utils.WordCounter;
 
 import java.io.File;
@@ -26,8 +26,8 @@ public class FileTask extends RecursiveTask<Map<String, Integer>> {
         if(fileList.length == 0) return new HashMap<>();
         size += fileList[0].length();
         for(i=1; i<fileList.length; i++) {
-            size += fileList[i].length();
             if(size > fileLimit) break;
+            size += fileList[i].length();
         }
         compute = Arrays.copyOfRange(fileList, 0, i);
         delegate = Arrays.copyOfRange(fileList, i, fileList.length);
@@ -61,7 +61,7 @@ public class FileTask extends RecursiveTask<Map<String, Integer>> {
      * @return
      */
     private static Map<String, Integer> mergeMaps(Map<String, Integer> map1, Map<String, Integer> map2) {
-        map1.forEach((key, value) -> map2.merge(key, value, (v1, v2) -> v1.equals(v2) ? v1 : v1 + v2));
+        map1.forEach((key, value) -> map2.merge(key, value, Integer::sum));
         return map2;
     }
 

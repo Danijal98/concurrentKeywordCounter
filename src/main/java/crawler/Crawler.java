@@ -7,4 +7,5 @@ public interface Crawler {
     void parseDirectory(File dir);
     void makeJobAndSendToQueue(File dir);
     void addDir(File dir) throws FileNotFoundException;
+    void addSubDirsToFileMap(File parentDir);
 }

@@ -1,7 +1,5 @@
 package utils;
 
-import main.ConfigurationReader;
-
 import java.io.*;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
