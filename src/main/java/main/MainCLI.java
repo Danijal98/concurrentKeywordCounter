@@ -146,7 +146,14 @@ public class MainCLI {
                                     System.out.println(res);
                                 }
                             }
-                            case "web" -> System.out.println(resultRetriever.queryWebResult(parts[1]));
+                            case "web" -> {
+                                Map<String, Integer> res = resultRetriever.queryWebResult(parts[1]);
+                                if (res == null || res.isEmpty()) {
+                                    System.out.println("Result is not ready yet...");
+                                }else {
+                                    System.out.println(res);
+                                }
+                            }
                             default -> System.out.println("Wrong first part of argument");
                         }
                     }
@@ -163,6 +170,7 @@ public class MainCLI {
         try {
             jobsQueue.addJob(new PoisonJob(ScanType.POISON));
             directoryCrawler.shutdown();
+            resultRetriever.shutdown();
             run = false;
         } catch (InterruptedException e) {
             System.out.println("Failed to put job to queue");

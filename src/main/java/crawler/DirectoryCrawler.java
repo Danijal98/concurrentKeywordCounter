@@ -10,12 +10,12 @@ import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DirectoryCrawler implements Crawler, Runnable {
 
     private final Map<File, Long> filesMap = new ConcurrentHashMap<>();
-    private final Queue<File> dirs = new ConcurrentLinkedDeque<>();
+    private final Queue<File> dirs = new ConcurrentLinkedQueue<>();
     private final long sleepTime;
     private final String corpusPrefix;
     private final MyQueue jobsQueue;

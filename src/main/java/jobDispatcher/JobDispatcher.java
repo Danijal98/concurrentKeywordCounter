@@ -5,23 +5,28 @@ import jobs.FileJob;
 import jobs.ScanningJob;
 import jobs.WebJob;
 import jobsQueue.MyQueue;
+import retriever.ResultRetriever;
 import retriever.Retriever;
 import tasks.FileTask;
 import tasks.WebTask;
 
+import javax.xml.transform.Result;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
 public class JobDispatcher implements Dispatcher {
 
     //thread pools
-    private ForkJoinPool filePool;
-    private ExecutorService service;
-    private ExecutorCompletionService<Map<String, Integer>> webPool;
+    private final ForkJoinPool filePool;
+    private final ExecutorService service;
+    private final ExecutorCompletionService<Map<String, Integer>> webPool;
 
     private final MyQueue jobsQueue;
-    //todo make pool of this
-    private Retriever retriever;
+    private final Retriever retriever;
+    private final List<String> visitedUrls;
     private volatile boolean run = true;
 
     public JobDispatcher(MyQueue jobsQueue, Retriever retriever) {
@@ -29,7 +34,9 @@ public class JobDispatcher implements Dispatcher {
         filePool = new ForkJoinPool();
         service = Executors.newCachedThreadPool();
         webPool = new ExecutorCompletionService<>(service);
+        visitedUrls = Collections.synchronizedList(new ArrayList<>());
         this.retriever = retriever;
+        this.retriever.setVisitedUrls(visitedUrls);
     }
 
     @Override
@@ -45,6 +52,8 @@ public class JobDispatcher implements Dispatcher {
                     retriever.addCorpusResult(fj.getDir(), fileFuture);
                 } else if (job.getType().equals(ScanType.WEB)) {
                     WebJob wj = (WebJob) job;
+                    if (visitedUrls.contains(wj.getUrl().toString())) continue;
+                    visitedUrls.add(wj.getUrl().toString());
                     WebTask webTask = new WebTask(wj.getHops(), wj.getUrl(), jobsQueue);
                     webPool.submit(webTask);
                     Future<Map<String, Integer>> webFuture = webPool.take();
