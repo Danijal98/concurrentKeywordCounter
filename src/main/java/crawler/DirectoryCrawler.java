@@ -4,6 +4,7 @@ import enums.ScanType;
 import jobs.FileJob;
 import jobs.ScanningJob;
 import jobsQueue.MyQueue;
+import utils.ConfigurationReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +17,7 @@ public class DirectoryCrawler implements Crawler, Runnable {
 
     private final Map<File, Long> filesMap = new ConcurrentHashMap<>();
     private final Queue<File> dirs = new ConcurrentLinkedQueue<>();
-    private final long sleepTime;
+    private long sleepTime;
     private final String corpusPrefix;
     private final MyQueue jobsQueue;
 
@@ -36,9 +37,14 @@ public class DirectoryCrawler implements Crawler, Runnable {
             }
             if(!filesMap.isEmpty())
             try {
+                long start = System.currentTimeMillis();
                 synchronized (this) {
                     wait(sleepTime);
                 }
+                long end = System.currentTimeMillis();
+                sleepTime = end-start;
+                if(sleepTime< ConfigurationReader.getInstance().getCrawlerSleepTime()) continue;
+                sleepTime = ConfigurationReader.getInstance().getCrawlerSleepTime();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -67,12 +73,10 @@ public class DirectoryCrawler implements Crawler, Runnable {
                     if(oldLastModified != null) {
                         Long newLastModified = f.lastModified();
                         if(!oldLastModified.equals(newLastModified)) {
-//                            filesMap.put(f, newLastModified);
                             addSubDirsToFileMap(f.getParentFile());
                             makeJobAndSendToQueue(f.getParentFile());
                         }
                     }else {
-//                        filesMap.put(f, f.lastModified());
                         addSubDirsToFileMap(f.getParentFile());
                         makeJobAndSendToQueue(f.getParentFile());
                     }

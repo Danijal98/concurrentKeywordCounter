@@ -53,6 +53,7 @@ public class JobDispatcher implements Dispatcher {
                 } else if (job.getType().equals(ScanType.WEB)) {
                     WebJob wj = (WebJob) job;
                     if (visitedUrls.contains(wj.getUrl().toString())) continue;
+
                     visitedUrls.add(wj.getUrl().toString());
                     WebTask webTask = new WebTask(wj.getHops(), wj.getUrl(), jobsQueue);
                     webPool.submit(webTask);

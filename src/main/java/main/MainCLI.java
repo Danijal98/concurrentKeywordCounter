@@ -101,8 +101,8 @@ public class MainCLI {
                     }
                     if (parts[1].equals("summary")) {
                         switch (parts[0]) {
-                            case "file" -> System.out.println(resultRetriever.querySummary(ScanType.FILE));
-                            case "web" -> System.out.println(resultRetriever.querySummary(ScanType.WEB));
+                            case "file" -> System.out.println(resultRetriever.getSummary(ScanType.FILE));
+                            case "web" -> System.out.println(resultRetriever.getSummary(ScanType.WEB));
                             default -> System.out.println("Wrong first part of argument");
                         }
                     }else {
@@ -126,14 +126,21 @@ public class MainCLI {
                     if (parts[1].equals("summary")) {
                         switch (parts[0]) {
                             case "file" -> {
-                                Map<String, Map<String, Integer>> res = resultRetriever.getSummary(ScanType.FILE);
+                                Map<String, Map<String, Integer>> res = resultRetriever.querySummary(ScanType.FILE);
                                 if (res == null) {
                                     System.out.println("Result is not ready yet...");
                                 }else {
                                     System.out.println(res);
                                 }
                             }
-                            case "web" -> System.out.println(resultRetriever.getSummary(ScanType.WEB));
+                            case "web" -> {
+                                Map<String, Map<String, Integer>> res = resultRetriever.querySummary(ScanType.WEB);
+                                if (res == null) {
+                                    System.out.println("Result is not ready yet...");
+                                }else {
+                                    System.out.println(res);
+                                }
+                            }
                             default -> System.out.println("Wrong first part of argument");
                         }
                     }else {
@@ -161,6 +168,7 @@ public class MainCLI {
                 case "cws" -> resultRetriever.clearSummary(ScanType.WEB);
                 case "cfs" -> resultRetriever.clearSummary(ScanType.FILE);
                 case "stop" -> shutdownThreads();
+                default -> System.out.println("Unknown command");
             }
         }
         System.out.println("Closing app...");
